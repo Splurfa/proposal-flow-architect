@@ -29,6 +29,7 @@ export interface GlobalSettings {
 }
 
 export interface ProposalState {
+  id?: string;
   globalSettings: GlobalSettings;
   teamCompensation: CompensationEntry[];
   proposalTitle: string;

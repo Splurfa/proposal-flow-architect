@@ -1,21 +1,55 @@
 
-// This file contains functions for interacting with Supabase database
+import { supabase } from '../lib/supabase';
+import { ProposalState } from '../types';
 
 /**
  * Save a proposal to the database
  * @param proposal The proposal data to save
  * @returns The saved proposal ID
  */
-export const saveProposalToDatabase = async (proposal: any) => {
-  // This is a placeholder function
-  // In a real implementation, this would save data to Supabase
-  console.log('Saving proposal to database:', proposal);
-  
-  // Simulate a successful save
-  return {
-    id: `proposal-${Date.now()}`,
-    success: true
-  };
+export const saveProposalToDatabase = async (proposal: Partial<ProposalState>) => {
+  try {
+    // Add timestamp for when the proposal was saved
+    const dataToSave = {
+      ...proposal,
+      updated_at: new Date().toISOString()
+    };
+    
+    // If the proposal has an id, update it, otherwise insert a new one
+    if (proposal.id) {
+      const { data, error } = await supabase
+        .from('proposals')
+        .update(dataToSave)
+        .eq('id', proposal.id)
+        .select();
+      
+      if (error) throw error;
+      
+      return {
+        id: data?.[0]?.id || proposal.id,
+        success: true
+      };
+    } else {
+      // Insert a new proposal
+      const { data, error } = await supabase
+        .from('proposals')
+        .insert([dataToSave])
+        .select();
+      
+      if (error) throw error;
+      
+      return {
+        id: data?.[0]?.id,
+        success: true
+      };
+    }
+  } catch (error) {
+    console.error('Error saving proposal:', error);
+    return {
+      success: false,
+      error
+    };
+  }
 };
 
 /**
@@ -24,20 +58,26 @@ export const saveProposalToDatabase = async (proposal: any) => {
  * @returns The loaded proposal data
  */
 export const loadProposalFromDatabase = async (id: string) => {
-  // This is a placeholder function
-  // In a real implementation, this would fetch data from Supabase
-  console.log('Loading proposal with ID:', id);
-  
-  // Simulate loading a proposal
-  return {
-    success: true,
-    data: {
-      // Placeholder data
-      id: id,
-      title: 'Loaded Proposal',
-      date: new Date().toISOString()
-    }
-  };
+  try {
+    const { data, error } = await supabase
+      .from('proposals')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      success: true,
+      data
+    };
+  } catch (error) {
+    console.error('Error loading proposal:', error);
+    return {
+      success: false,
+      error
+    };
+  }
 };
 
 /**
@@ -45,15 +85,28 @@ export const loadProposalFromDatabase = async (id: string) => {
  * @returns Array of saved proposals
  */
 export const getSavedProposals = async () => {
-  // This is a placeholder function
-  // In a real implementation, this would fetch data from Supabase
-  
-  // Return some mock data for now
-  return {
-    success: true,
-    data: [
-      { id: 'proposal-1', title: 'YHA 2023-24 Proposal', date: '2023-06-15' },
-      { id: 'proposal-2', title: 'Hillel 2023-24 Proposal', date: '2023-07-01' }
-    ]
-  };
+  try {
+    const { data, error } = await supabase
+      .from('proposals')
+      .select('id, proposalTitle, updated_at')
+      .order('updated_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return {
+      success: true,
+      data: data?.map(item => ({
+        id: item.id,
+        title: item.proposalTitle || 'Untitled Proposal',
+        date: item.updated_at
+      })) || []
+    };
+  } catch (error) {
+    console.error('Error getting saved proposals:', error);
+    return {
+      success: false,
+      error,
+      data: []
+    };
+  }
 };

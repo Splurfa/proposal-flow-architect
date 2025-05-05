@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from 'react';
 import { 
   ProposalState, 
@@ -6,6 +7,7 @@ import {
   FinancialSummary,
   FinancialBreakdown
 } from '../types';
+import { saveProposalToDatabase, loadProposalFromDatabase } from '../utils/supabaseHelpers';
 
 // Initialize with default values
 const initialState: ProposalState = {
@@ -191,30 +193,69 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setState(prev => ({ ...prev, proposalDate: date }));
   };
 
-  // New function to calculate financials based on current state
   const calculateFinancials = () => {
     // This is a placeholder - we'll implement the actual calculation logic in a future step
     console.log('Calculating financials based on current state...');
     // For now, we're just using the placeholder data
   };
 
-  // Placeholder functions for saving and loading proposals
-  // These will be implemented when we integrate with Supabase
+  // Function to save the current proposal to Supabase
   const saveProposal = async () => {
-    console.log('Saving proposal...');
-    setState(prev => ({ 
-      ...prev, 
-      savedState: true, 
-      lastSaved: new Date() 
-    }));
-    // This will be replaced with actual Supabase integration
-    return Promise.resolve();
+    try {
+      // Prepare data to save - convert Date objects to strings
+      const dataToSave = {
+        ...state,
+        proposalDate: state.proposalDate.toISOString(),
+        lastSaved: new Date().toISOString()
+      };
+      
+      const result = await saveProposalToDatabase(dataToSave);
+      
+      if (!result.success) {
+        throw new Error('Failed to save proposal');
+      }
+      
+      // Update state with the saved ID and timestamp
+      setState(prev => ({ 
+        ...prev, 
+        id: result.id,
+        savedState: true, 
+        lastSaved: new Date() 
+      }));
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error in saveProposal:', error);
+      return Promise.reject(error);
+    }
   };
 
+  // Function to load a proposal from Supabase
   const loadProposal = async (id: string) => {
-    console.log(`Loading proposal with ID: ${id}`);
-    // This will be replaced with actual Supabase integration
-    return Promise.resolve();
+    try {
+      const result = await loadProposalFromDatabase(id);
+      
+      if (!result.success || !result.data) {
+        throw new Error('Failed to load proposal');
+      }
+      
+      // Convert date strings back to Date objects
+      const loadedData = {
+        ...result.data,
+        proposalDate: new Date(result.data.proposalDate),
+        lastSaved: result.data.lastSaved ? new Date(result.data.lastSaved) : null
+      };
+      
+      setState(loadedData);
+      
+      // Recalculate financials based on loaded data
+      calculateFinancials();
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error in loadProposal:', error);
+      return Promise.reject(error);
+    }
   };
 
   return (
