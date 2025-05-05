@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from 'react';
 import { 
   ProposalState, 
@@ -22,9 +21,12 @@ const initialState: ProposalState = {
     { role: 'Social Skills Coach', type: 'Hourly', rate: 50 }
   ],
   proposalTitle: 'YHA 2023-24 Proposal',
+  proposalDate: new Date(),
   activeClient: 'YHA',
   activeView: 'YHA',
   activeTab: 'inputs',
+  savedState: false,
+  lastSaved: null,
   clients: [
     {
       clientName: 'YHA',
@@ -117,6 +119,10 @@ interface ProposalContextType {
   updateTeamCompensation: (role: string, field: string, value: any) => void;
   updateClientScenario: (client: ClientType, role: string, field: string, value: any) => void;
   updateProposalTitle: (title: string) => void;
+  updateProposalDate: (date: Date) => void;
+  calculateFinancials: () => void;
+  saveProposal: () => Promise<void>;
+  loadProposal: (id: string) => Promise<void>;
 }
 
 const ProposalContext = createContext<ProposalContextType | undefined>(undefined);
@@ -125,8 +131,8 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [state, setState] = useState<ProposalState>(initialState);
   
   // For this initial implementation, we'll use placeholder data
-  const [financialSummary] = useState<FinancialSummary>(placeholderFinancialSummary);
-  const [financialBreakdown] = useState<FinancialBreakdown>(placeholderFinancialBreakdown);
+  const [financialSummary, setFinancialSummary] = useState<FinancialSummary>(placeholderFinancialSummary);
+  const [financialBreakdown, setFinancialBreakdown] = useState<FinancialBreakdown>(placeholderFinancialBreakdown);
 
   const setActiveTab = (tab: 'inputs' | 'financial' | 'preview') => {
     setState(prev => ({ ...prev, activeTab: tab }));
@@ -181,6 +187,36 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setState(prev => ({ ...prev, proposalTitle: title }));
   };
 
+  const updateProposalDate = (date: Date) => {
+    setState(prev => ({ ...prev, proposalDate: date }));
+  };
+
+  // New function to calculate financials based on current state
+  const calculateFinancials = () => {
+    // This is a placeholder - we'll implement the actual calculation logic in a future step
+    console.log('Calculating financials based on current state...');
+    // For now, we're just using the placeholder data
+  };
+
+  // Placeholder functions for saving and loading proposals
+  // These will be implemented when we integrate with Supabase
+  const saveProposal = async () => {
+    console.log('Saving proposal...');
+    setState(prev => ({ 
+      ...prev, 
+      savedState: true, 
+      lastSaved: new Date() 
+    }));
+    // This will be replaced with actual Supabase integration
+    return Promise.resolve();
+  };
+
+  const loadProposal = async (id: string) => {
+    console.log(`Loading proposal with ID: ${id}`);
+    // This will be replaced with actual Supabase integration
+    return Promise.resolve();
+  };
+
   return (
     <ProposalContext.Provider value={{
       state,
@@ -192,7 +228,11 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       updateGlobalSettings,
       updateTeamCompensation,
       updateClientScenario,
-      updateProposalTitle
+      updateProposalTitle,
+      updateProposalDate,
+      calculateFinancials,
+      saveProposal,
+      loadProposal
     }}>
       {children}
     </ProposalContext.Provider>

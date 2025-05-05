@@ -32,10 +32,13 @@ export interface ProposalState {
   globalSettings: GlobalSettings;
   teamCompensation: CompensationEntry[];
   proposalTitle: string;
+  proposalDate: Date;
   activeClient: ClientType;
   clients: ClientScenario[];
   activeView: ViewType;
   activeTab: 'inputs' | 'financial' | 'preview';
+  savedState: boolean;
+  lastSaved: Date | null;
 }
 
 // Financial calculations interfaces (placeholders for now)
