@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   ProposalState, 
   ClientType, 
@@ -8,6 +8,7 @@ import {
   FinancialBreakdown
 } from '../types';
 import { saveProposalToDatabase, loadProposalFromDatabase } from '../utils/supabaseHelpers';
+import { calculateFinancialSummary, calculateFinancialBreakdown } from '../utils/financialCalculations';
 
 // Initialize with default values
 const initialState: ProposalState = {
@@ -51,65 +52,6 @@ const initialState: ProposalState = {
   ]
 };
 
-// Placeholder financial data (to be calculated later)
-const placeholderFinancialSummary: FinancialSummary = {
-  worstCase: {
-    yearlyOperatingProfit: -157050,
-    yearlyOperatingMargin: -52.00,
-    yearlyGrossRevenue: 302000
-  },
-  bestCase: {
-    yearlyOperatingProfit: 119930,
-    yearlyOperatingMargin: 23.71,
-    yearlyGrossRevenue: 505800
-  },
-  summary: {
-    yearlyRevenueRange: [302000, 505800],
-    yearlyOpProfitRange: [-157050, 119930],
-    yearlyOpMarginRange: [-52.00, 23.71]
-  }
-};
-
-const placeholderFinancialBreakdown: FinancialBreakdown = {
-  detailedBreakdown: [
-    {
-      role: 'Clinical Director',
-      grossRevenue: [59200, 59200],
-      burdenedCost: [63750, 63750],
-      grossProfit: [-4550, -4550],
-      grossMargin: [-7.69, -7.69]
-    },
-    {
-      role: 'Senior BCBA/ECD',
-      grossRevenue: [138000, 222000],
-      burdenedCost: [125000, 125000],
-      grossProfit: [13000, 97000],
-      grossMargin: [9.42, 43.69]
-    },
-    {
-      role: 'Behavior Technician',
-      grossRevenue: [92700, 144000],
-      burdenedCost: [65260, 130520],
-      grossProfit: [27440, 13480],
-      grossMargin: [29.60, 9.36]
-    },
-    {
-      role: 'Social Skills Coach',
-      grossRevenue: [12800, 41600],
-      burdenedCost: [30000, 60000],
-      grossProfit: [-17200, -18400],
-      grossMargin: [-134.38, -44.23]
-    }
-  ],
-  totalGrossRevenue: [302000, 505800],
-  totalBurdenedCost: [310000, 441750],
-  totalGrossProfit: [-8000, 64050],
-  totalGrossMargin: [-2.65, 12.66],
-  estimatedOverhead: [45300, 75870],
-  estimatedOperatingProfit: [-157050, 119930],
-  estimatedOperatingMargin: [-52.00, 23.71]
-};
-
 interface ProposalContextType {
   state: ProposalState;
   financialSummary: FinancialSummary;
@@ -131,10 +73,38 @@ const ProposalContext = createContext<ProposalContextType | undefined>(undefined
 
 export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<ProposalState>(initialState);
-  
-  // For this initial implementation, we'll use placeholder data
-  const [financialSummary, setFinancialSummary] = useState<FinancialSummary>(placeholderFinancialSummary);
-  const [financialBreakdown, setFinancialBreakdown] = useState<FinancialBreakdown>(placeholderFinancialBreakdown);
+  const [financialSummary, setFinancialSummary] = useState<FinancialSummary>({
+    worstCase: {
+      yearlyOperatingProfit: 0,
+      yearlyOperatingMargin: 0,
+      yearlyGrossRevenue: 0
+    },
+    bestCase: {
+      yearlyOperatingProfit: 0,
+      yearlyOperatingMargin: 0,
+      yearlyGrossRevenue: 0
+    },
+    summary: {
+      yearlyRevenueRange: [0, 0],
+      yearlyOpProfitRange: [0, 0],
+      yearlyOpMarginRange: [0, 0]
+    }
+  });
+  const [financialBreakdown, setFinancialBreakdown] = useState<FinancialBreakdown>({
+    detailedBreakdown: [],
+    totalGrossRevenue: [0, 0],
+    totalBurdenedCost: [0, 0],
+    totalGrossProfit: [0, 0],
+    totalGrossMargin: [0, 0],
+    estimatedOverhead: [0, 0],
+    estimatedOperatingProfit: [0, 0],
+    estimatedOperatingMargin: [0, 0]
+  });
+
+  // Calculate financials whenever relevant state changes
+  useEffect(() => {
+    calculateFinancials();
+  }, [state.globalSettings, state.teamCompensation, state.clients, state.activeView]);
 
   const setActiveTab = (tab: 'inputs' | 'financial' | 'preview') => {
     setState(prev => ({ ...prev, activeTab: tab }));
@@ -151,7 +121,8 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateGlobalSettings = (settings: Partial<ProposalState['globalSettings']>) => {
     setState(prev => ({
       ...prev,
-      globalSettings: { ...prev.globalSettings, ...settings }
+      globalSettings: { ...prev.globalSettings, ...settings },
+      savedState: false
     }));
   };
 
@@ -163,7 +134,7 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
         return item;
       });
-      return { ...prev, teamCompensation: updatedComp };
+      return { ...prev, teamCompensation: updatedComp, savedState: false };
     });
   };
 
@@ -181,22 +152,38 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
         return clientItem;
       });
-      return { ...prev, clients: updatedClients };
+      return { ...prev, clients: updatedClients, savedState: false };
     });
   };
 
   const updateProposalTitle = (title: string) => {
-    setState(prev => ({ ...prev, proposalTitle: title }));
+    setState(prev => ({ ...prev, proposalTitle: title, savedState: false }));
   };
 
   const updateProposalDate = (date: Date) => {
-    setState(prev => ({ ...prev, proposalDate: date }));
+    setState(prev => ({ ...prev, proposalDate: date, savedState: false }));
   };
 
   const calculateFinancials = () => {
-    // This is a placeholder - we'll implement the actual calculation logic in a future step
-    console.log('Calculating financials based on current state...');
-    // For now, we're just using the placeholder data
+    // Use our utility functions to calculate financials
+    const summary = calculateFinancialSummary(
+      state.globalSettings,
+      state.teamCompensation,
+      state.clients,
+      state.activeView
+    );
+    
+    const breakdown = calculateFinancialBreakdown(
+      state.globalSettings,
+      state.teamCompensation,
+      state.clients,
+      state.activeView
+    );
+    
+    setFinancialSummary(summary);
+    setFinancialBreakdown(breakdown);
+    
+    console.log('Financial calculations updated:', { summary, breakdown });
   };
 
   // Function to save the current proposal to Supabase
@@ -261,7 +248,7 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setState(processedData as ProposalState);
       
       // Recalculate financials based on loaded data
-      calculateFinancials();
+      setTimeout(() => calculateFinancials(), 0);
       
       return Promise.resolve();
     } catch (error) {
