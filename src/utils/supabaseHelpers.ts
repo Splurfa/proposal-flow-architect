@@ -1,5 +1,5 @@
 
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConnected } from '../lib/supabase';
 import { ProposalState } from '../types';
 
 /**
@@ -9,6 +9,15 @@ import { ProposalState } from '../types';
  */
 export const saveProposalToDatabase = async (proposal: any) => {
   try {
+    // Check if Supabase is connected
+    if (!isSupabaseConnected()) {
+      return {
+        success: false,
+        error: new Error('Supabase not connected. Please connect to Supabase first.'),
+        isConnectionError: true
+      };
+    }
+    
     // Add timestamp for when the proposal was saved
     const dataToSave = {
       ...proposal,
@@ -17,7 +26,7 @@ export const saveProposalToDatabase = async (proposal: any) => {
     
     // If the proposal has an id, update it, otherwise insert a new one
     if (proposal.id) {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('proposals')
         .update(dataToSave)
         .eq('id', proposal.id)
@@ -31,7 +40,7 @@ export const saveProposalToDatabase = async (proposal: any) => {
       };
     } else {
       // Insert a new proposal
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('proposals')
         .insert([dataToSave])
         .select();
@@ -59,7 +68,16 @@ export const saveProposalToDatabase = async (proposal: any) => {
  */
 export const loadProposalFromDatabase = async (id: string) => {
   try {
-    const { data, error } = await supabase
+    // Check if Supabase is connected
+    if (!isSupabaseConnected()) {
+      return {
+        success: false,
+        error: new Error('Supabase not connected. Please connect to Supabase first.'),
+        isConnectionError: true
+      };
+    }
+    
+    const { data, error } = await supabase!
       .from('proposals')
       .select('*')
       .eq('id', id)
@@ -86,7 +104,17 @@ export const loadProposalFromDatabase = async (id: string) => {
  */
 export const getSavedProposals = async () => {
   try {
-    const { data, error } = await supabase
+    // Check if Supabase is connected
+    if (!isSupabaseConnected()) {
+      return {
+        success: false,
+        error: new Error('Supabase not connected. Please connect to Supabase first.'),
+        isConnectionError: true,
+        data: []
+      };
+    }
+    
+    const { data, error } = await supabase!
       .from('proposals')
       .select('id, proposalTitle, updated_at')
       .order('updated_at', { ascending: false });

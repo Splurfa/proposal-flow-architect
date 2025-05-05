@@ -5,4 +5,17 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Check if we have the required variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Supabase URL or Anonymous Key is missing. Make sure you have connected to Supabase properly.');
+}
+
+// Initialize the Supabase client with appropriate error handling
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null;
+
+// Helper function to check if Supabase is properly initialized
+export const isSupabaseConnected = () => {
+  return !!supabase;
+};

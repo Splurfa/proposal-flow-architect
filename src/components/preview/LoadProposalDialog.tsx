@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { getSavedProposals } from '../../utils/supabaseHelpers';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { isSupabaseConnected } from '../../lib/supabase';
 
 interface ProposalListItem {
   id: string;
@@ -28,6 +29,17 @@ const LoadProposalDialog: React.FC<LoadProposalDialogProps> = ({ open, onOpenCha
 
   useEffect(() => {
     if (open) {
+      // Check if Supabase is connected before fetching proposals
+      if (!isSupabaseConnected()) {
+        toast({
+          title: "Supabase not connected",
+          description: "Please connect to Supabase first by clicking the Supabase button in the top right corner.",
+          variant: "destructive",
+        });
+        onOpenChange(false);
+        return;
+      }
+      
       fetchProposals();
     }
   }, [open]);
@@ -36,6 +48,17 @@ const LoadProposalDialog: React.FC<LoadProposalDialogProps> = ({ open, onOpenCha
     setLoading(true);
     try {
       const response = await getSavedProposals();
+      
+      if (response.isConnectionError) {
+        toast({
+          title: "Supabase not connected",
+          description: "Please connect to Supabase first by clicking the Supabase button in the top right corner.",
+          variant: "destructive",
+        });
+        onOpenChange(false);
+        return;
+      }
+      
       if (response.success) {
         setProposals(response.data);
       } else {

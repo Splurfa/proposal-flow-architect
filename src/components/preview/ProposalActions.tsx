@@ -5,6 +5,7 @@ import { Button } from '../ui/button';
 import { Loader2, Save, FolderOpen, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LoadProposalDialog from './LoadProposalDialog';
+import { isSupabaseConnected } from '../../lib/supabase';
 
 const ProposalActions: React.FC = () => {
   const { state, saveProposal } = useProposal();
@@ -15,6 +16,16 @@ const ProposalActions: React.FC = () => {
   
   // Function to handle saving a proposal
   const handleSave = async () => {
+    // Check if Supabase is connected
+    if (!isSupabaseConnected()) {
+      toast({
+        title: "Supabase not connected",
+        description: "Please connect to Supabase first by clicking the Supabase button in the top right corner.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSaving(true);
     try {
       await saveProposal();
@@ -35,6 +46,16 @@ const ProposalActions: React.FC = () => {
   
   // Function to show the load dialog
   const handleLoad = () => {
+    // Check if Supabase is connected
+    if (!isSupabaseConnected()) {
+      toast({
+        title: "Supabase not connected",
+        description: "Please connect to Supabase first by clicking the Supabase button in the top right corner.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoadDialogOpen(true);
   };
   
