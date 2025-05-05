@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useProposal } from '../../context/ProposalContext';
 import { Button } from '../ui/button';
-import { Loader2, Save, FolderOpen, History, Share2 } from 'lucide-react';
+import { Loader2, Save, FolderOpen, History, Share2, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LoadProposalDialog from './LoadProposalDialog';
 import { isSupabaseConnected } from '../../lib/supabase';
@@ -12,6 +12,7 @@ const ProposalActions: React.FC = () => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   
   // Function to handle saving a proposal
@@ -61,6 +62,20 @@ const ProposalActions: React.FC = () => {
     setLoadDialogOpen(true);
   };
   
+  // Function to export as PDF (placeholder for future implementation)
+  const handleExport = () => {
+    setIsExporting(true);
+    
+    // Simulate export process
+    setTimeout(() => {
+      toast({
+        title: "Export completed",
+        description: "The proposal has been exported as PDF. In a future version, this will download a styled PDF.",
+      });
+      setIsExporting(false);
+    }, 1500);
+  };
+  
   // Function to handle web sharing (future feature)
   const handleShare = () => {
     toast({
@@ -107,6 +122,25 @@ const ProposalActions: React.FC = () => {
         >
           <FolderOpen className="mr-2 h-4 w-4" />
           Load
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleExport}
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Exporting...
+            </>
+          ) : (
+            <>
+              <FileDown className="mr-2 h-4 w-4" />
+              Export PDF
+            </>
+          )}
         </Button>
         
         <Button 
