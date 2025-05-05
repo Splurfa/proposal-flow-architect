@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useProposal } from '../../context/ProposalContext';
 import { Button } from '../ui/button';
-import { Loader2, Save, FolderOpen, History, Printer, FileDown } from 'lucide-react';
+import { Loader2, Save, FolderOpen, History, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LoadProposalDialog from './LoadProposalDialog';
 import { isSupabaseConnected } from '../../lib/supabase';
@@ -61,25 +61,11 @@ const ProposalActions: React.FC = () => {
     setLoadDialogOpen(true);
   };
   
-  // Function to handle printing the proposal
-  const handlePrint = () => {
+  // Function to handle web sharing (future feature)
+  const handleShare = () => {
     toast({
-      title: "Preparing to print...",
-      description: "Opening print dialog. Please wait.",
-    });
-    
-    // Use setTimeout to allow the toast to display before printing
-    setTimeout(() => {
-      window.print();
-    }, 500);
-  };
-  
-  // Function to handle exporting the proposal
-  const handleExport = () => {
-    // For now, just show a toast that this is coming soon
-    toast({
-      title: "Export feature coming soon",
-      description: "We're working on adding PDF export functionality.",
+      title: "Web sharing coming soon",
+      description: "We're developing the ability to share proposals via web links.",
     });
   };
   
@@ -135,19 +121,10 @@ const ProposalActions: React.FC = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={handlePrint}
+          onClick={handleShare}
         >
-          <Printer className="mr-2 h-4 w-4" />
-          Print
-        </Button>
-
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleExport}
-        >
-          <FileDown className="mr-2 h-4 w-4" />
-          Export
+          <Share2 className="mr-2 h-4 w-4" />
+          Share
         </Button>
       </div>
 
