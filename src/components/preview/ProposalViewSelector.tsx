@@ -1,22 +1,22 @@
 
 import React from 'react';
 import { useProposal } from '../../context/ProposalContext';
-import { ViewType } from '../../types';
+import { ClientType } from '../../types';
 import { Button } from '../ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Share } from 'lucide-react';
 
 const ProposalViewSelector: React.FC = () => {
   const { state, setActiveView } = useProposal();
   
-  const handleViewChange = (view: ViewType) => {
-    setActiveView(view);
+  const handleViewChange = (client: ClientType) => {
+    setActiveView(client);
   };
 
   return (
     <div className="flex items-center space-x-2">
       <div className="text-sm text-muted-foreground mr-2 flex items-center">
         <Eye className="h-4 w-4 mr-1" />
-        <span>View:</span>
+        <span>Client:</span>
       </div>
       
       <div className="flex bg-muted rounded-md overflow-hidden">
@@ -41,11 +41,12 @@ const ProposalViewSelector: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="rounded-none opacity-50"
+          className="rounded-none text-muted-foreground hover:text-foreground flex items-center"
           disabled
           title="Coming soon"
         >
-          Share
+          <Share className="h-4 w-4 mr-1" />
+          <span>Share</span>
         </Button>
       </div>
     </div>
