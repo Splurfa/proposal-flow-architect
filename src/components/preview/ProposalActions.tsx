@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useProposal } from '../../context/ProposalContext';
 import { Button } from '../ui/button';
-import { Loader2, Save, FolderOpen, History } from 'lucide-react';
+import { Loader2, Save, FolderOpen, History, Printer, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import LoadProposalDialog from './LoadProposalDialog';
 import { isSupabaseConnected } from '../../lib/supabase';
@@ -61,6 +61,28 @@ const ProposalActions: React.FC = () => {
     setLoadDialogOpen(true);
   };
   
+  // Function to handle printing the proposal
+  const handlePrint = () => {
+    toast({
+      title: "Preparing to print...",
+      description: "Opening print dialog. Please wait.",
+    });
+    
+    // Use setTimeout to allow the toast to display before printing
+    setTimeout(() => {
+      window.print();
+    }, 500);
+  };
+  
+  // Function to handle exporting the proposal
+  const handleExport = () => {
+    // For now, just show a toast that this is coming soon
+    toast({
+      title: "Export feature coming soon",
+      description: "We're working on adding PDF export functionality.",
+    });
+  };
+  
   // Function to show version history (will implement later)
   const handleViewVersions = () => {
     toast({
@@ -71,7 +93,7 @@ const ProposalActions: React.FC = () => {
   
   return (
     <>
-      <div className="flex space-x-2">
+      <div className="flex flex-wrap gap-2">
         <Button 
           variant="outline" 
           size="sm" 
@@ -108,6 +130,24 @@ const ProposalActions: React.FC = () => {
         >
           <History className="mr-2 h-4 w-4" />
           Versions
+        </Button>
+
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handlePrint}
+        >
+          <Printer className="mr-2 h-4 w-4" />
+          Print
+        </Button>
+
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleExport}
+        >
+          <FileDown className="mr-2 h-4 w-4" />
+          Export
         </Button>
       </div>
 
