@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from 'react';
 import { 
   ProposalState, 
@@ -202,9 +201,10 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Function to save the current proposal to Supabase
   const saveProposal = async () => {
     try {
-      // Prepare data to save - convert Date objects to strings
+      // Prepare data to save by creating a serializable copy of the state
       const dataToSave = {
         ...state,
+        // Convert Date objects to strings for storage
         proposalDate: state.proposalDate.toISOString(),
         lastSaved: new Date().toISOString()
       };
@@ -246,7 +246,7 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         lastSaved: result.data.lastSaved ? new Date(result.data.lastSaved) : null
       };
       
-      setState(loadedData);
+      setState(loadedData as ProposalState);
       
       // Recalculate financials based on loaded data
       calculateFinancials();

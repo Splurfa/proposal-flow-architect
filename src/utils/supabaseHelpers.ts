@@ -7,7 +7,7 @@ import { ProposalState } from '../types';
  * @param proposal The proposal data to save
  * @returns The saved proposal ID
  */
-export const saveProposalToDatabase = async (proposal: Partial<ProposalState>) => {
+export const saveProposalToDatabase = async (proposal: any) => {
   try {
     // Add timestamp for when the proposal was saved
     const dataToSave = {
