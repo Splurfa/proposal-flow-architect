@@ -17,12 +17,22 @@ export const saveProposalToDatabase = async (proposal: any) => {
       };
     }
     
+    // Create a serializable version of the proposal data
+    const serializableProposal = {
+      ...proposal,
+      // Convert Date objects to strings for storage
+      proposalDate: proposal.proposalDate instanceof Date ? proposal.proposalDate.toISOString() : proposal.proposalDate,
+      lastSaved: proposal.lastSaved instanceof Date ? proposal.lastSaved.toISOString() : proposal.lastSaved
+    };
+    
     // Add timestamp for when the proposal was saved
     const dataToSave = {
       proposalTitle: proposal.proposalTitle || 'Untitled Proposal',
       updated_at: new Date().toISOString(),
-      data: proposal // Store the entire proposal as JSON
+      data: serializableProposal // Store the serialized proposal as JSON
     };
+    
+    console.log('Saving proposal to database:', dataToSave);
     
     // If the proposal has an id, update it, otherwise insert a new one
     if (proposal.id) {
@@ -32,7 +42,10 @@ export const saveProposalToDatabase = async (proposal: any) => {
         .eq('id', proposal.id)
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
       
       return {
         id: data?.[0]?.id || proposal.id,
@@ -45,7 +58,10 @@ export const saveProposalToDatabase = async (proposal: any) => {
         .insert([dataToSave])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
       
       return {
         id: data?.[0]?.id,

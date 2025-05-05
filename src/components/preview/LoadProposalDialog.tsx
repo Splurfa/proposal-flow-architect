@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useProposal } from '../../context/ProposalContext';
 import { Button } from '../ui/button';
@@ -47,6 +46,7 @@ const LoadProposalDialog: React.FC<LoadProposalDialogProps> = ({ open, onOpenCha
   const fetchProposals = async () => {
     setLoading(true);
     try {
+      console.log('Fetching saved proposals...');
       const response = await getSavedProposals();
       
       if (response.isConnectionError) {
@@ -60,8 +60,10 @@ const LoadProposalDialog: React.FC<LoadProposalDialogProps> = ({ open, onOpenCha
       }
       
       if (response.success) {
+        console.log('Fetched proposals:', response.data);
         setProposals(response.data);
       } else {
+        console.error('Error fetching proposals:', response.error);
         toast({
           title: "Error loading proposals",
           description: "Could not retrieve your saved proposals.",

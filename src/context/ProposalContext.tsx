@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from 'react';
 import { 
   ProposalState, 
@@ -201,18 +202,19 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Function to save the current proposal to Supabase
   const saveProposal = async () => {
     try {
-      // Prepare data to save by creating a serializable copy of the state
+      console.log('Saving proposal:', state);
+      
+      // Create a serializable copy of the state
       const dataToSave = {
         ...state,
-        // Convert Date objects to strings for storage
-        proposalDate: state.proposalDate.toISOString(),
-        lastSaved: new Date().toISOString()
+        // We'll let the helper function handle Date serialization
       };
       
       const result = await saveProposalToDatabase(dataToSave);
       
       if (!result.success) {
-        throw new Error('Failed to save proposal');
+        console.error('Failed to save proposal:', result.error);
+        throw result.error;
       }
       
       // Update state with the saved ID and timestamp
@@ -223,6 +225,7 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         lastSaved: new Date() 
       }));
       
+      console.log('Proposal saved successfully with ID:', result.id);
       return Promise.resolve();
     } catch (error) {
       console.error('Error in saveProposal:', error);
@@ -233,20 +236,29 @@ export const ProposalProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Function to load a proposal from Supabase
   const loadProposal = async (id: string) => {
     try {
+      console.log('Loading proposal with ID:', id);
       const result = await loadProposalFromDatabase(id);
       
       if (!result.success || !result.data) {
+        console.error('Failed to load proposal:', result.error);
         throw new Error('Failed to load proposal');
       }
       
       // Convert date strings back to Date objects
-      const loadedData = {
-        ...result.data,
-        proposalDate: new Date(result.data.proposalDate),
-        lastSaved: result.data.lastSaved ? new Date(result.data.lastSaved) : null
+      const loadedData = result.data;
+      
+      // If data is inside a 'data' property, use that
+      const proposalData = loadedData.data || loadedData;
+      
+      // Ensure dates are properly converted
+      const processedData = {
+        ...proposalData,
+        proposalDate: proposalData.proposalDate ? new Date(proposalData.proposalDate) : new Date(),
+        lastSaved: proposalData.lastSaved ? new Date(proposalData.lastSaved) : null
       };
       
-      setState(loadedData as ProposalState);
+      console.log('Loaded proposal data:', processedData);
+      setState(processedData as ProposalState);
       
       // Recalculate financials based on loaded data
       calculateFinancials();
