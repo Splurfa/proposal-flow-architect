@@ -1,19 +1,17 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// These environment variables are automatically injected by Lovable when connected to Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// These are the project credentials from when we connected to Supabase
+const supabaseUrl = "https://eoxvuizjjggarhhyhlsi.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVveHZ1aXpqamdnYXJoaHlobHNpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NjU4NDksImV4cCI6MjA2MjA0MTg0OX0.a3XQfJDCWrhIR-BJ-HIZmYpgX9yUJxPbrhMuOD09gsk";
 
-// Check if we have the required variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL or Anonymous Key is missing. Make sure you have connected to Supabase properly.');
-}
-
-// Initialize the Supabase client with appropriate error handling
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+// Initialize the Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Helper function to check if Supabase is properly initialized
 export const isSupabaseConnected = () => {

@@ -1,5 +1,5 @@
 
-import { supabase, isSupabaseConnected } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { ProposalState } from '../types';
 
 /**
@@ -9,8 +9,7 @@ import { ProposalState } from '../types';
  */
 export const saveProposalToDatabase = async (proposal: any) => {
   try {
-    // Check if Supabase is connected
-    if (!isSupabaseConnected()) {
+    if (!supabase) {
       return {
         success: false,
         error: new Error('Supabase not connected. Please connect to Supabase first.'),
@@ -20,13 +19,14 @@ export const saveProposalToDatabase = async (proposal: any) => {
     
     // Add timestamp for when the proposal was saved
     const dataToSave = {
-      ...proposal,
-      updated_at: new Date().toISOString()
+      proposalTitle: proposal.proposalTitle || 'Untitled Proposal',
+      updated_at: new Date().toISOString(),
+      data: proposal // Store the entire proposal as JSON
     };
     
     // If the proposal has an id, update it, otherwise insert a new one
     if (proposal.id) {
-      const { data, error } = await supabase!
+      const { data, error } = await supabase
         .from('proposals')
         .update(dataToSave)
         .eq('id', proposal.id)
@@ -40,7 +40,7 @@ export const saveProposalToDatabase = async (proposal: any) => {
       };
     } else {
       // Insert a new proposal
-      const { data, error } = await supabase!
+      const { data, error } = await supabase
         .from('proposals')
         .insert([dataToSave])
         .select();
@@ -68,8 +68,7 @@ export const saveProposalToDatabase = async (proposal: any) => {
  */
 export const loadProposalFromDatabase = async (id: string) => {
   try {
-    // Check if Supabase is connected
-    if (!isSupabaseConnected()) {
+    if (!supabase) {
       return {
         success: false,
         error: new Error('Supabase not connected. Please connect to Supabase first.'),
@@ -77,7 +76,7 @@ export const loadProposalFromDatabase = async (id: string) => {
       };
     }
     
-    const { data, error } = await supabase!
+    const { data, error } = await supabase
       .from('proposals')
       .select('*')
       .eq('id', id)
@@ -85,9 +84,10 @@ export const loadProposalFromDatabase = async (id: string) => {
     
     if (error) throw error;
     
+    // The actual proposal content is stored in the data field
     return {
       success: true,
-      data
+      data: data?.data || data
     };
   } catch (error) {
     console.error('Error loading proposal:', error);
@@ -104,8 +104,7 @@ export const loadProposalFromDatabase = async (id: string) => {
  */
 export const getSavedProposals = async () => {
   try {
-    // Check if Supabase is connected
-    if (!isSupabaseConnected()) {
+    if (!supabase) {
       return {
         success: false,
         error: new Error('Supabase not connected. Please connect to Supabase first.'),
@@ -114,7 +113,7 @@ export const getSavedProposals = async () => {
       };
     }
     
-    const { data, error } = await supabase!
+    const { data, error } = await supabase
       .from('proposals')
       .select('id, proposalTitle, updated_at')
       .order('updated_at', { ascending: false });

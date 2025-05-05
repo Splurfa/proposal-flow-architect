@@ -39,6 +39,7 @@ const ProposalActions: React.FC = () => {
         description: "There was a problem saving your proposal.",
         variant: "destructive",
       });
+      console.error("Save error:", error);
     } finally {
       setIsSaving(false);
     }
