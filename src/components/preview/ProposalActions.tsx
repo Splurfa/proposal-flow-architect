@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useProposal } from '../../context/ProposalContext';
 import { Button } from '../ui/button';
@@ -37,7 +38,7 @@ const ProposalActions: React.FC = () => {
       console.error("Save error:", error);
       toast({
         title: "Error saving proposal",
-        description: "There was a problem saving your proposal. Check the console for details.",
+        description: "There was a problem saving your proposal. Please try again.",
         variant: "destructive",
       });
     } finally {
